@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Demandas — Phillipe de Paula</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3148;
+    --accent: #c8a96e;
+    --accent2: #7b9cff;
+    --danger: #ff5f5f;
+    --warning: #ffb347;
+    --success: #5fd68a;
+    --text: #e8e9f0;
+    --muted: #7b7f9e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  .logo p {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* UPLOAD */
+  .upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 40px;
+    max-width: 600px;
+    margin: 80px auto;
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .upload-area:hover { border-color: var(--accent); background: rgba(200,169,110,0.04); }
+  .upload-area.drag { border-color: var(--accent); background: rgba(200,169,110,0.08); }
+
+  .upload-icon {
+    width: 64px; height: 64px;
+    background: var(--surface2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+
+  .upload-area h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .upload-area p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--accent); color: #1a1505; }
+  .btn-primary:hover { background: #d4b87a; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  #fileInput { display: none; }
+
+  /* COMO EXPORTAR */
+  .how-to {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 40px 40px;
+    text-align: center;
+  }
+
+  .how-to h3 { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+
+  .steps {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .step-num {
+    background: var(--accent);
+    color: #1a1505;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* DASHBOARD */
+  #dashboard { display: none; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 40px; }
+
+  /* STATS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .stat.total::before { background: var(--accent2); }
+  .stat.vencido::before { background: var(--danger); }
+  .stat.urgente::before { background: var(--warning); }
+  .stat.ok::before { background: var(--success); }
+  .stat.abas::before { background: var(--accent); }
+
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .stat-value { font-size: 36px; font-weight: 600; line-height: 1; }
+  .stat.total .stat-value { color: var(--accent2); }
+  .stat.vencido .stat-value { color: var(--danger); }
+  .stat.urgente .stat-value { color: var(--warning); }
+  .stat.ok .stat-value { color: var(--success); }
+
+  /* FILTROS */
+  .filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search:focus { border-color: var(--accent); }
+  .search::placeholder { color: var(--muted); }
+
+  select.filter {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select.filter:focus { border-color: var(--accent); }
+
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab.active { background: var(--accent); color: #1a1505; border-color: var(--accent); font-weight: 600; }
+  .tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+  /* TABELA */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody tr.row-vencido { border-left: 3px solid var(--danger); }
+  tbody tr.row-urgente { border-left: 3px solid var(--warning); }
+  tbody tr.row-ok { border-left: 3px solid transparent; }
+
+  td {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .ticket-badge {
+    font-family: 'DM Serif Display', serif;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .tipo-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .status-aberto { background: rgba(123,156,255,0.15); color: var(--accent2); }
+  .status-andamento { background: rgba(200,169,110,0.15); color: var(--accent); }
+  .status-aguardando { background: rgba(255,179,71,0.15); color: var(--warning); }
+  .status-encerrado { background: rgba(95,214,138,0.15); color: var(--success); }
+
+  .prazo-vencido { color: var(--danger); font-weight: 600; }
+  .prazo-urgente { color: var(--warning); font-weight: 600; }
+  .prazo-ok { color: var(--muted); }
+
+  .descricao-cell {
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 24px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--accent);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .modal-body { padding: 20px 28px 28px; }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1/-1; }
+  .field-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .field-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .field-value.highlight { color: var(--accent); font-family: 'DM Serif Display', serif; font-size: 18px; }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 16px; }
+
+  /* FOOTER */
+  .table-footer {
+    padding: 12px 20px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>Phillipe de Paula</h1>
+    <p>Painel de Controle de Demandas</p>
+  </div>
+  <div class="header-actions">
+    <span id="lastUpdate" style="font-size:12px;color:var(--muted)"></span>
+    <button class="btn btn-ghost" onclick="document.getElementById('fileInput').click()">↑ Novo CSV</button>
+    <input type="file" id="fileInput" accept=".csv" onchange="loadCSV(this)">
+  </div>
+</header>
+
+<!-- TELA INICIAL -->
+<div id="uploadScreen">
+  <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()"
+       ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+    <div class="upload-icon">📂</div>
+    <h2>Carregar Planilha</h2>
+    <p>Exporte a aba desejada da planilha como CSV<br>e arraste o arquivo aqui ou clique para selecionar</p>
+    <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Selecionar arquivo CSV</button>
+  </div>
+
+  <div class="how-to">
+    <h3>Como exportar o CSV</h3>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span>Abra a planilha no Google Sheets</div>
+      <div class="step"><span class="step-num">2</span>Selecione a aba desejada</div>
+      <div class="step"><span class="step-num">3</span>Arquivo → Fazer download → CSV</div>
+      <div class="step"><span class="step-num">4</span>Arraste o arquivo aqui</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="container">
+
+    <div class="stats">
+      <div class="stat total">
+        <div class="stat-label">Total Abertos</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+      <div class="stat vencido">
+        <div class="stat-label">Prazos Vencidos</div>
+        <div class="stat-value" id="statVencidos">0</div>
+      </div>
+      <div class="stat urgente">
+        <div class="stat-label">Vencendo em 3 dias</div>
+        <div class="stat-value" id="statUrgentes">0</div>
+      </div>
+      <div class="stat ok">
+        <div class="stat-label">Em dia</div>
+        <div class="stat-value" id="statOk">0</div>
+      </div>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="tab active" onclick="filterTab('todos', this)">Todos</button>
+      <button class="tab" onclick="filterTab('vencido', this)">🔴 Vencidos</button>
+      <button class="tab" onclick="filterTab('urgente', this)">🟡 Urgentes</button>
+      <button class="tab" onclick="filterTab('aberto', this)">Abertos</button>
+      <button class="tab" onclick="filterTab('encerrado', this)">Encerrados</button>
+    </div>
+
+    <div class="filters">
+      <input type="text" class="search" placeholder="🔍 Buscar por cliente, ticket, processo..." oninput="applyFilters()">
+      <select class="filter" onchange="applyFilters()" id="filterTipo">
+        <option value="">Todos os tipos</option>
+      </select>
+      <select class="filter" onchange="applyFilters()" id="filterResp">
+        <option value="">Todos os responsáveis</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Data</th>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Descrição</th>
+            <th>Responsável</th>
+            <th>Prazo</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="table-footer">
+        <span id="countLabel">0 registros</span>
+        <span id="dataSource"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTicket"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-grid" id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allRows = [];
+let currentTab = 'todos';
+const today = new Date();
+today.setHours(0,0,0,0);
+
+// UPLOAD
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) processFile(file);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag');
+}
+
+function handleDragLeave() {
+  document.getElementById('dropZone').classList.remove('drag');
+}
+
+function loadCSV(input) {
+  if (input.files[0]) processFile(input.files[0]);
+}
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    parseCSV(e.target.result, file.name);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text, filename) {
+  const lines = text.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return;
+
+  // Parse CSV respeitando aspas
+  function parseLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') {
+        inQuotes = !inQuotes;
+      } else if (line[i] === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += line[i];
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  const rows = lines.slice(1).map(parseLine);
+  allRows = rows.map(r => ({
+    ticket:      r[0]  || '',
+    data:        r[1]  || '',
+    cliente:     r[2]  || '',
+    cnpj:        r[3]  || '',
+    tipo:        r[4]  || '',
+    origem:      r[5]  || '',
+    email:       r[6]  || '',
+    assunto:     r[7]  || '',
+    descricao:   r[8]  || '',
+    categoria:   r[9]  || '',
+    processo:    r[10] || '',
+    respInterno: r[11] || '',
+    respExterno: r[12] || '',
+    prazo:       r[13] || '',
+    diasRest:    r[14] || '',
+    status:      r[15] || '',
+    dataEnc:     r[16] || '',
+    drive:       r[17] || '',
+    obs:         r[20] || '',
+  })).filter(r => r.ticket);
+
+  // Popula filtros
+  const tipos = [...new Set(allRows.map(r => r.tipo).filter(Boolean))].sort();
+  const resps = [...new Set(allRows.map(r => r.respInterno).filter(Boolean))].sort();
+
+  const filterTipo = document.getElementById('filterTipo');
+  filterTipo.innerHTML = '<option value="">Todos os tipos</option>' +
+    tipos.map(t => `<option value="${t}">${t}</option>`).join('');
+
+  const filterResp = document.getElementById('filterResp');
+  filterResp.innerHTML = '<option value="">Todos os responsáveis</option>' +
+    resps.map(r => `<option value="${r}">${r}</option>`).join('');
+
+  document.getElementById('uploadScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('lastUpdate').textContent = `Carregado: ${filename}`;
+  document.getElementById('dataSource').textContent = filename;
+
+  applyFilters();
+}
+
+// PRAZO
+function parsePrazo(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length !== 3) return null;
+  return new Date(parts[2], parts[1]-1, parts[0]);
+}
+
+function prazoStatus(prazoStr) {
+  const prazo = parsePrazo(prazoStr);
+  if (!prazo) return 'sem-prazo';
+  const diff = Math.ceil((prazo - today) / 86400000);
+  if (diff < 0) return 'vencido';
+  if (diff <= 3) return 'urgente';
+  return 'ok';
+}
+
+function diasRestantes(prazoStr) {
+  const prazo = parsePrazo(prazoStr);
+  if (!prazo) return '';
+  const diff = Math.ceil((prazo - today) / 86400000);
+  if (diff < 0) return `${Math.abs(diff)}d vencido`;
+  if (diff === 0) return 'Hoje!';
+  return `${diff}d`;
+}
+
+// FILTROS
+function filterTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = document.querySelector('.search').value.toLowerCase();
+  const tipo = document.getElementById('filterTipo').value;
+  const resp = document.getElementById('filterResp').value;
+
+  const encerrados = ['Encerrado', 'Encerrada', 'encerrado'];
+
+  let filtered = allRows.filter(r => {
+    const ps = prazoStatus(r.prazo);
+    const isEncerrado = encerrados.includes(r.status);
+
+    if (currentTab === 'vencido' && ps !== 'vencido') return false;
+    if (currentTab === 'urgente' && ps !== 'urgente') return false;
+    if (currentTab === 'aberto' && isEncerrado) return false;
+    if (currentTab === 'encerrado' && !isEncerrado) return false;
+
+    if (tipo && r.tipo !== tipo) return false;
+    if (resp && r.respInterno !== resp) return false;
+
+    if (search) {
+      const haystack = [r.ticket, r.cliente, r.tipo, r.processo, r.descricao, r.assunto].join(' ').toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+
+    return true;
+  });
+
+  renderTable(filtered);
+  updateStats();
+}
+
+function updateStats() {
+  const ativos = allRows.filter(r => !['Encerrado','Encerrada','encerrado'].includes(r.status));
+  document.getElementById('statTotal').textContent = ativos.length;
+  document.getElementById('statVencidos').textContent = ativos.filter(r => prazoStatus(r.prazo) === 'vencido').length;
+  document.getElementById('statUrgentes').textContent = ativos.filter(r => prazoStatus(r.prazo) === 'urgente').length;
+  document.getElementById('statOk').textContent = ativos.filter(r => prazoStatus(r.prazo) === 'ok').length;
+}
+
+function statusClass(status) {
+  const s = (status || '').toLowerCase();
+  if (s.includes('aberto') || s === 'novo') return 'status-aberto';
+  if (s.includes('andamento')) return 'status-andamento';
+  if (s.includes('aguard')) return 'status-aguardando';
+  if (s.includes('encerr')) return 'status-encerrado';
+  return 'status-aberto';
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('tableBody');
+  document.getElementById('countLabel').textContent = `${rows.length} registro${rows.length !== 1 ? 's' : ''}`;
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">🔍</div><p>Nenhuma demanda encontrada</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const ps = prazoStatus(r.prazo);
+    const rowClass = ps === 'vencido' ? 'row-vencido' : ps === 'urgente' ? 'row-urgente' : 'row-ok';
+    const prazoClass = ps === 'vencido' ? 'prazo-vencido' : ps === 'urgente' ? 'prazo-urgente' : 'prazo-ok';
+    const dr = diasRestantes(r.prazo);
+
+    return `<tr class="${rowClass}" onclick="openModal(${i}, ${rows.indexOf(r)})">
+      <td><span class="ticket-badge">${r.ticket}</span></td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${r.data}</td>
+      <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.cliente}">${r.cliente}</td>
+      <td><span class="tipo-badge">${r.tipo}</span></td>
+      <td><div class="descricao-cell" title="${r.descricao}">${r.descricao || r.assunto}</div></td>
+      <td style="color:var(--muted);font-size:12px">${r.respInterno}</td>
+      <td style="white-space:nowrap">
+        <span class="${prazoClass}">${r.prazo}</span>
+        ${dr ? `<br><span style="font-size:11px;color:var(--muted)">${dr}</span>` : ''}
+      </td>
+      <td><span class="status-badge ${statusClass(r.status)}">${r.status}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Guarda referência para o modal
+  window._filteredRows = rows;
+}
+
+// MODAL
+function openModal(tableIdx, allIdx) {
+  const r = window._filteredRows[tableIdx];
+  if (!r) return;
+
+  document.getElementById('modalTicket').textContent = r.ticket;
+  document.getElementById('modalOverlay').classList.add('open');
+
+  const ps = prazoStatus(r.prazo);
+  const prazoColor = ps === 'vencido' ? 'var(--danger)' : ps === 'urgente' ? 'var(--warning)' : 'var(--text)';
+  const dr = diasRestantes(r.prazo);
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="field full">
+      <div class="field-label">Cliente</div>
+      <div class="field-value highlight">${r.cliente}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">CNPJ / CPF</div>
+      <div class="field-value">${r.cnpj || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Data de Entrada</div>
+      <div class="field-value">${r.data}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Tipo de Demanda</div>
+      <div class="field-value">${r.tipo}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Categoria</div>
+      <div class="field-value">${r.categoria || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Nº Processo / Protocolo</div>
+      <div class="field-value">${r.processo || '—'}</div>
+    </div>
+    <div class="field full">
+      <div class="field-label">Descrição</div>
+      <div class="field-value" style="white-space:pre-wrap">${r.descricao || r.assunto || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Origem</div>
+      <div class="field-value">${r.origem || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">E-mail Recebido</div>
+      <div class="field-value" style="font-size:12px">${r.email || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Responsável Interno</div>
+      <div class="field-value">${r.respInterno || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Responsável Externo</div>
+      <div class="field-value">${r.respExterno || '—'}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Prazo</div>
+      <div class="field-value" style="color:${prazoColor};font-weight:600">${r.prazo || '—'} ${dr ? `(${dr})` : ''}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Status</div>
+      <div class="field-value"><span class="status-badge ${statusClass(r.status)}">${r.status}</span></div>
+    </div>
+    ${r.obs ? `<div class="field full"><div class="field-label">Observações</div><div class="field-value">${r.obs}</div></div>` : ''}
+    ${r.drive ? `<div class="field full"><div class="field-label">Link Drive</div><div class="field-value"><a href="${r.drive}" target="_blank" style="color:var(--accent2)">Abrir pasta →</a></div></div>` : ''}
+  `;
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
